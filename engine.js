@@ -46,6 +46,7 @@ function loop(now){
   // 背景
   const painter=SC.painters[stage.bg]||SC.painters.menu; painter(ctx,W,H,t);
   if(stage.weather==='rain') SC.rainFx(ctx,W,H,t,.5);
+  if(stage.weather==='snow' && SC.snowFx) SC.snowFx(ctx,W,H,t);
   // 背景行人
   if(AMBIENT.has(stage.bg) && now-lastSpawn>4200 && walkers.length<3){ lastSpawn=now; const dir=Math.random()>0.5?1:-1; walkers.push({x:dir>0?-0.08:1.08,dir,speed:0.025+Math.random()*0.02,phase:Math.random()*6,s:0.72+Math.random()*0.15}); }
   walkers=walkers.filter(w=>w.x>-0.15&&w.x<1.15);
@@ -119,8 +120,12 @@ function showSay(who,text,done){
   pendingSay={who,text,done};
   const dlg=$('dialogue'); dlg.classList.remove('hidden');
   const sp=$('speaker');
-  if(who==='n'){ sp.textContent='旁白'; sp.className='narr'; stage.speaker=null; }
-  else { const ch=CHARACTERS[who]; sp.textContent=ch?ch.name:who; sp.className=''; sp.style.background=''; stage.speaker=who; }
+  const FACEIDS=['huaian','mother','xiaoman','zhiyuan','qinghe','xushan','chenbo','wenying'];
+  const faceEl=document.getElementById('faceImg');
+  if(who==='n'){ sp.textContent='旁白'; sp.className='narr'; stage.speaker=null; if(faceEl){ faceEl.style.display='none'; dlg.classList.remove('withFace'); } }
+  else { const ch=CHARACTERS[who]; sp.textContent=ch?ch.name:who; sp.className=''; sp.style.background=''; stage.speaker=who;
+    if(faceEl && FACEIDS.includes(who)){ faceEl.src='assets/face_'+who+'.jpg'; faceEl.style.display='block'; dlg.classList.add('withFace'); }
+    else if(faceEl){ faceEl.style.display='none'; dlg.classList.remove('withFace'); } }
   const el=$('dlgText'); el.textContent='';
   let i=0; const full=text;
   if(typing) clearInterval(typing);

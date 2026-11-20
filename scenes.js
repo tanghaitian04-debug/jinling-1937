@@ -318,3 +318,37 @@ window.SC = (function(){
   }
   return {painters, drawFigure, walker, cyclist, rainFx:rain};
 })();
+
+// ===== 手绘美术层：AI 绘制场景图（带缓慢推镜的电影感动态）覆盖矢量场景，加载失败自动回退 =====
+(function(){
+  const defs={
+    menu:['river_dawn','rgba(46,32,54,0.20)'], river_dawn:['river_dawn',null], shop:['shop',null],
+    street_day:['street_day',null], street_dusk:['street_day','rgba(52,36,66,0.34)'], home:['home',null],
+    roof_night:['roof_night',null], road:['road',null], gate:['gate',null], camp:['camp',null],
+    hospital:['hospital',null], ruin:['ruin',null], river_night:['river_night',null], shelter:['shelter',null],
+    record_room:['shop','rgba(12,10,24,0.40)'], winter:['ruin',null],
+    road_spring:['road','rgba(96,150,80,0.13)'], dawn_return:['gate','rgba(255,176,92,0.15)']
+  };
+  const ART={};
+  for(const k in defs){ const img=new Image(); img.src='assets/bg_'+defs[k][0]+'.jpg'; ART[k]={img,tint:defs[k][1]}; }
+  const orig=Object.assign({}, SC.painters);
+  function drawArt(c,W,H,img,t){
+    const iw=img.naturalWidth, ih=img.naturalHeight;
+    const s=Math.max(W/iw,H/ih)*(1.07+0.018*Math.sin(t*0.06));
+    const dw=iw*s, dh=ih*s;
+    const dx=(W-dw)/2 + Math.sin(t*0.04)*W*0.008, dy=(H-dh)/2 + Math.cos(t*0.027)*H*0.006;
+    c.drawImage(img,dx,dy,dw,dh);
+  }
+  for(const k in defs){
+    SC.painters[k]=function(c,W,H,t){
+      const a=ART[k];
+      if(a && a.img.complete && a.img.naturalWidth){ drawArt(c,W,H,a.img,t); if(a.tint){ c.fillStyle=a.tint; c.fillRect(0,0,W,H); } }
+      else if(orig[k]) orig[k](c,W,H,t);
+    };
+  }
+  SC.snowFx=function(c,W,H,t){
+    c.fillStyle='rgba(255,255,255,.8)';
+    for(let i=0;i<70;i++){ const x=((i*67 + t*20*(1+i%3))%(W+20))-10, y=((i*41 + t*34*(1+i%2))%H); c.beginPath(); c.arc(x,y,1.7,0,6.29); c.fill(); }
+  };
+  SC.ART=ART;
+})();

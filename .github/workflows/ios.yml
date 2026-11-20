@@ -10,6 +10,7 @@ jobs:
         run: |
           mkdir -p ios/Game
           cp index.html scenes.js story.js engine.js ios/Game/
+          cp -r assets ios/Game/assets
           ls -la ios/Game
       - name: Install XcodeGen
         run: brew install xcodegen

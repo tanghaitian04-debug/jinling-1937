@@ -254,7 +254,13 @@ function newGame(fromLabel){
   mode='play'; $('menu').classList.add('hidden'); $('hud').classList.remove('hidden'); $('endingCard').classList.add('hidden');
   updateHUD(); step();
 }
-$('btnNew').addEventListener('click',()=>{ if(localStorage.getItem('jinling_save_auto')&&!confirm('开始新游戏将覆盖自动存档，继续吗？')) return; localStorage.removeItem('jinling_save_auto'); newGame(); });
+$('btnNew').addEventListener('click',()=>{
+  if(localStorage.getItem('jinling_save_auto')){
+    openPanel('<h2>开始新游戏</h2><p>已有自动存档。开始新游戏将覆盖它，确定吗？</p><div class="closeRow"><button class="pbtn" id="ngCancel">取消</button><button class="pbtn main" id="ngOk">覆盖并开始</button></div>');
+    $('modalRoot').querySelector('#ngCancel').addEventListener('click',closePanel);
+    $('modalRoot').querySelector('#ngOk').addEventListener('click',()=>{ closePanel(); localStorage.removeItem('jinling_save_auto'); newGame(); });
+  } else newGame();
+});
 $('btnContinue').addEventListener('click',()=>loadGame('auto'));
 $('btnMenu2').addEventListener('click',()=>{ saveGame('auto'); toMenu(); });
 
@@ -342,7 +348,7 @@ $('btnSettings').addEventListener('click',()=>{
   $('modalRoot').querySelector('#setDiff').addEventListener('change',e=>{ settings.difficulty=e.target.value; saveSettings(); });
   $('modalRoot').querySelector('#setAuto').addEventListener('change',e=>{ settings.auto=e.target.value==='1'; saveSettings(); });
   $('modalRoot').querySelector('#setClose').addEventListener('click',closePanel);
-  $('modalRoot').querySelector('#wipeBtn').addEventListener('click',()=>{ if(confirm('确定清除全部存档、图鉴与章节解锁吗？')){ Object.keys(localStorage).filter(k=>k.startsWith('jinling_')).forEach(k=>localStorage.removeItem(k)); closePanel(); refreshMenu(); toast('已清除'); } });
+  $('modalRoot').querySelector('#wipeBtn').addEventListener('click',()=>{ openPanel('<h2>清除全部数据</h2><p>确定清除全部存档、结局图鉴与章节解锁吗？此操作不可恢复。</p><div class="closeRow"><button class="pbtn" id="wpCancel">取消</button><button class="pbtn main" id="wpOk">确定清除</button></div>'); $('modalRoot').querySelector('#wpCancel').addEventListener('click',closePanel); $('modalRoot').querySelector('#wpOk').addEventListener('click',()=>{ Object.keys(localStorage).filter(k=>k.startsWith('jinling_')).forEach(k=>localStorage.removeItem(k)); closePanel(); refreshMenu(); toast('已清除'); }); });
 });
 $('btnCredits').addEventListener('click',()=>{
   openPanel('<h2>制作说明 · 史实与虚构</h2><p>《金陵未眠：1937》是一部历史题材互动叙事游戏。</p><h3>真实的部分</h3><p>1937年南京保卫战、12月12日撤退命令、12月13日南京沦陷、日军在南京实施的大规模屠杀与暴行、南京安全区的存在、中国人民坚持抗战直至1945年胜利——这些历史事实不容改变，游戏中以【史实】标注。</p><h3>虚构的部分</h3><p>林怀安一家、陈记修车铺、游戏中的基层小队与全部具体情节均为艺术虚构，不对应真实人物与部队番号；虚构文书均标注为【虚构文书】，不冒充历史档案。</p><h3>创作原则</h3><p>不以猎奇方式呈现苦难；不把受害者当作积分与资源；人物的命运由玩家的选择与历史的洪流共同决定。「我只是想活下去。后来，我发现还有一些事，比活着更难，也更不能放弃。」</p><p style="margin-top:10px;color:#a99e83;font-size:13px">版本 V1.0 · 画面与人物动画均为程序实时绘制 · 建议使用声音游玩（落子声、环境音为合成音效）</p><div class="closeRow"><button class="pbtn main" id="crClose">关闭</button></div>');

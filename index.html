@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>金陵未眠：1937 · Jinling Never Sleeps</title>
+<meta name="description" content="历史剧情互动游戏《金陵未眠：1937》——1937年南京，普通人的抉择与命运。完整分支剧情、双路线、24种结局。">
+<style>
+:root{--paper:#efe6d0;--ink:#2b2419;--gold:#c9a86a;--copper:#a67c4e;--dark:#171310;--panel:rgba(24,19,14,.88);--red:#8e3b2f;--safe-b:env(safe-area-inset-bottom);--safe-t:env(safe-area-inset-top)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:#0d0b09;font-family:"Songti SC","STSong","SimSun",-apple-system,"PingFang SC",serif;color:var(--paper);overscroll-behavior:none}
+#app{position:fixed;inset:0}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(0,0,0,.42) 100%);z-index:2}
+.fadeLayer{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity 1.1s ease;z-index:3}
+/* 顶部 HUD */
+#hud{position:absolute;top:calc(8px + var(--safe-t));left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;z-index:10;pointer-events:none;gap:8px}
+.hudL,.hudR{display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}
+.chip{background:var(--panel);border:1px solid rgba(201,168,106,.45);border-radius:999px;padding:6px 11px;font-size:12.5px;letter-spacing:.5px;backdrop-filter:blur(6px);white-space:nowrap}
+.chip b{color:var(--gold);font-weight:700}
+.ibtn{background:var(--panel);border:1px solid rgba(201,168,106,.45);color:var(--paper);border-radius:999px;min-width:38px;height:38px;padding:0 10px;font-size:15px;cursor:pointer;backdrop-filter:blur(6px)}
+.ibtn:active{transform:scale(.93);background:rgba(80,60,35,.9)}
+.barWrap{width:74px;height:6px;background:rgba(255,255,255,.16);border-radius:99px;display:inline-block;vertical-align:middle;margin-left:5px;overflow:hidden}
+.barFill{height:100%;border-radius:99px;transition:width .5s}
+#hpFill{background:linear-gradient(90deg,#b3543f,#d98a68)}#staFill{background:linear-gradient(90deg,#7d9b5e,#b5c98a)}
+/* 对话框 */
+#dialogue{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(12px + var(--safe-b));width:min(940px,94vw);z-index:12;background:linear-gradient(180deg,rgba(26,20,14,.92),rgba(18,14,10,.95));border:1px solid rgba(201,168,106,.5);border-radius:16px;padding:16px 20px 12px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.5);cursor:pointer}
+#speaker{position:absolute;top:-13px;left:18px;background:linear-gradient(135deg,#6d4c2a,#8a6538);border:1px solid var(--gold);color:#ffeec4;border-radius:8px;padding:3px 14px;font-size:14.5px;font-weight:700;letter-spacing:2px}
+#speaker.narr{background:linear-gradient(135deg,#3c3a38,#57534c);border-color:#9a958a;color:#e8e2d4}
+#dlgText{font-size:calc(17px * var(--fs,1));line-height:1.75;min-height:56px;letter-spacing:.4px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+#dlgFoot{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+#dlgHint{font-size:11.5px;color:#a99e83;letter-spacing:1px;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+.dtools{display:flex;gap:5px}
+.dtools button{background:rgba(255,255,255,.06);border:1px solid rgba(201,168,106,.35);color:#d8cba6;border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer}
+.dtools button.on{background:rgba(201,168,106,.35);color:#fff2d0}
+/* 选择 */
+#choices{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--safe-b));width:min(680px,92vw);z-index:13;display:flex;flex-direction:column;gap:9px}
+.choiceBtn{background:linear-gradient(180deg,rgba(38,30,20,.96),rgba(26,20,13,.96));border:1px solid rgba(201,168,106,.6);color:var(--paper);border-radius:13px;padding:13px 18px;font-size:16px;text-align:left;cursor:pointer;letter-spacing:.5px;box-shadow:0 10px 26px rgba(0,0,0,.45);font-family:inherit;animation:rise .3s ease both}
+.choiceBtn:active{transform:scale(.98)}
+.choiceBtn:disabled{opacity:.45;cursor:not-allowed}
+.choiceBtn small{display:block;font-size:12px;color:#b3a582;margin-top:2px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* 主菜单 */
+#menu{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:linear-gradient(180deg,rgba(10,8,6,.18) 0%,rgba(10,8,6,.05) 40%,rgba(10,8,6,.55) 100%)}
+#menuTitle{text-align:center;animation:tfade 2.2s ease both}
+@keyframes tfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#menuTitle .en{font-size:12px;letter-spacing:6px;color:#cbbd93;text-transform:uppercase}
+#menuTitle h1{font-size:clamp(38px,8.5vw,64px);letter-spacing:8px;color:#f4e9cd;text-shadow:0 4px 30px rgba(0,0,0,.8);margin:8px 0 4px;font-weight:900}
+#menuTitle .sub{font-size:clamp(13px,2.6vw,16.5px);color:#d9cba3;letter-spacing:3px}
+#menuBtns{margin-top:34px;display:flex;flex-direction:column;gap:11px;width:min(340px,86vw);animation:tfade 2.2s .35s ease both}
+.mbtn{background:linear-gradient(180deg,rgba(34,26,17,.9),rgba(22,17,11,.92));border:1px solid rgba(201,168,106,.65);color:#f0e5c8;border-radius:12px;padding:13px 18px;font-size:17px;letter-spacing:4px;cursor:pointer;font-family:inherit;backdrop-filter:blur(5px)}
+.mbtn:active{transform:scale(.97)}
+.mbtn:disabled{opacity:.38;cursor:not-allowed}
+.mbtn small{letter-spacing:1px;font-size:11.5px;color:#b3a582;display:block;margin-top:2px}
+#menuFoot{position:absolute;bottom:calc(14px + var(--safe-b));font-size:11.5px;color:rgba(230,218,188,.55);letter-spacing:1.5px;text-align:center;padding:0 14px}
+/* 通用弹窗 */
+.modal{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(5,4,3,.66);padding:16px;backdrop-filter:blur(3px)}
+.panel{width:min(680px,96vw);max-height:86dvh;overflow-y:auto;background:linear-gradient(180deg,#241c12,#1a140d);border:1px solid rgba(201,168,106,.6);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.panel h2{font-size:21px;letter-spacing:3px;color:#f0dfae;margin-bottom:6px}
+.panel h3{font-size:15.5px;color:var(--gold);letter-spacing:2px;margin:14px 0 6px}
+.panel p,.panel li{font-size:14.5px;line-height:1.75;color:#ddd2b2}
+.panel .closeRow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.pbtn{flex:1;min-width:110px;background:rgba(201,168,106,.14);border:1px solid rgba(201,168,106,.55);color:#f0e5c8;border-radius:10px;padding:11px;font-size:15px;cursor:pointer;font-family:inherit;letter-spacing:2px}
+.pbtn.main{background:linear-gradient(135deg,#7a4a26,#96662f);color:#ffedbe}
+.pbtn:active{transform:scale(.97)}
+.pbtn:disabled{opacity:.4}
+.statGrid{display:grid;grid-template-columns:1fr 1fr;gap:5px 18px;margin:8px 0}
+.statRow{display:flex;justify-content:space-between;font-size:14px;border-bottom:1px dashed rgba(201,168,106,.22);padding:4px 0}
+.statRow b{color:#f0dfae}
+.itemRow{display:flex;gap:11px;padding:9px 4px;border-bottom:1px dashed rgba(201,168,106,.22);align-items:flex-start}
+.itemRow .ic{font-size:24px}
+.itemRow .nm{font-size:15.5px;color:#f0dfae}
+.itemRow .ds{font-size:12.5px;color:#b3a582;line-height:1.55}
+.relRow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(201,168,106,.18);font-size:14px}
+.relRow .hearts{color:#d98a68;letter-spacing:2px}
+.slotRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px dashed rgba(201,168,106,.25)}
+.slotRow .info{font-size:13.5px;color:#cfc2a0;line-height:1.5}
+.docItem,.endItem{padding:9px 4px;border-bottom:1px dashed rgba(201,168,106,.2);font-size:14.5px}
+.docItem small,.endItem small{display:block;color:#a99e83;font-size:12px;line-height:1.55}
+.endItem.locked{opacity:.45}
+.tag{display:inline-block;font-size:11px;border:1px solid rgba(201,168,106,.5);border-radius:99px;padding:1px 8px;color:#d9cba3;margin-left:6px;vertical-align:1px}
+.tag.fact{border-color:rgba(140,180,120,.6);color:#b9d9a8}.tag.fic{border-color:rgba(190,150,90,.6);color:#e3c491}
+/* 章节卡 */
+#chapterCard{position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,4,3,.45);cursor:pointer}
+#chapterCard .ch{font-size:15px;letter-spacing:6px;color:#cbbd93}
+#chapterCard .ti{font-size:clamp(30px,7vw,46px);letter-spacing:8px;color:#f4e9cd;margin-top:10px;text-shadow:0 4px 24px rgba(0,0,0,.8)}
+#chapterCard .dt{font-size:14px;color:#b3a582;letter-spacing:2px;margin-top:12px}
+/* 结局 */
+#endingCard{position:absolute;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(180deg,rgba(8,6,4,.25),rgba(8,6,4,.78))}
+#endingCard .panel{text-align:left}
+#endCode{color:var(--gold);letter-spacing:4px;font-size:13px}
+#endTitle{font-size:30px;letter-spacing:5px;color:#f4e9cd;margin:6px 0 10px}
+#toast{position:absolute;top:calc(64px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.toastItem{background:rgba(20,15,9,.92);border:1px solid rgba(201,168,106,.55);border-radius:999px;padding:7px 16px;font-size:13.5px;color:#f0dfae;animation:rise .3s ease both;white-space:nowrap}
+.hidden{display:none!important}
+/* 小游戏 */
+.gameOpt{display:block;width:100%;text-align:left;margin:7px 0;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,106,.4);color:var(--paper);border-radius:11px;padding:12px 14px;font-size:15px;cursor:pointer;font-family:inherit;line-height:1.6}
+.gameOpt.sel{background:rgba(201,168,106,.3);border-color:var(--gold)}
+.gameOpt.right{border-color:#8fbc7a;background:rgba(120,170,90,.18)}
+.gameOpt.wrong{border-color:#b3543f;background:rgba(180,80,60,.15);animation:shake .3s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.letterPaper{background:#efe6d0;color:#3a2f1e;border-radius:10px;padding:16px 18px;font-size:15.5px;line-height:2;letter-spacing:1px;margin:10px 0;box-shadow:inset 0 0 30px rgba(150,120,60,.25)}
+input[type=range]{width:130px;accent-color:var(--gold)}
+select{background:#2a2115;color:var(--paper);border:1px solid rgba(201,168,106,.5);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:14px}
+/* 宽屏/展开屏：双栏感布局 */
+@media (min-width:900px){
+  #dialogue{width:min(980px,72vw);padding:20px 26px 14px}
+  #dlgText{font-size:calc(18.5px * var(--fs,1))}
+  #choices{bottom:calc(168px + var(--safe-b))}
+  .chip{font-size:13.5px;padding:7px 13px}
+}
+/* 矮屏（横屏手机） */
+@media (max-height:480px){
+  #dialogue{padding:11px 16px 8px}
+  #dlgText{min-height:40px;line-height:1.6}
+  #choices{bottom:calc(118px + var(--safe-b))}
+  #menuBtns{margin-top:16px;gap:7px}.mbtn{padding:9px 14px;font-size:15px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="stage"></canvas>
+  <div class="vignette"></div>
+  <div class="fadeLayer" id="fade"></div>
+
+  <div id="hud" class="hidden">
+    <div class="hudL">
+      <span class="chip" id="hudChapter">序章</span>
+      <span class="chip" id="hudDate">1937年11月</span>
+      <span class="chip">生命 <span class="barWrap"><span class="barFill" id="hpFill" style="width:100%"></span></span><b id="hpVal">100</b></span>
+      <span class="chip">体力 <span class="barWrap"><span class="barFill" id="staFill" style="width:80%"></span></span><b id="staVal">80</b></span>
+    </div>
+    <div class="hudR">
+      <button class="ibtn" id="btnStatus" aria-label="状态">👤</button>
+      <button class="ibtn" id="btnBag" aria-label="背包">🎒</button>
+      <button class="ibtn" id="btnSave" aria-label="存档">💾</button>
+      <button class="ibtn" id="btnMenu2" aria-label="菜单">☰</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="choices" class="hidden"></div>
+
+  <div id="dialogue" class="hidden">
+    <div id="speaker">旁白</div>
+    <div id="dlgText"></div>
+    <div id="dlgFoot">
+      <span id="dlgHint">轻点继续 ▸</span>
+      <span class="dtools">
+        <button id="btnAuto">自动</button>
+        <button id="btnLog">回想</button>
+        <button id="btnHide">隐藏</button>
+      </span>
+    </div>
+  </div>
+
+  <div id="chapterCard" class="hidden"><div class="ch" id="ccChapter"></div><div class="ti" id="ccTitle"></div><div class="dt" id="ccDate"></div></div>
+
+  <div id="menu">
+    <div id="menuTitle">
+      <div class="en">Jinling Never Sleeps · 1937</div>
+      <h1>金陵未眠</h1>
+      <div class="sub">一九三七 · 每个人，都曾有过平凡的一天</div>
+    </div>
+    <div id="menuBtns">
+      <button class="mbtn" id="btnContinue">继续游戏<small id="continueInfo">暂无进度</small></button>
+      <button class="mbtn" id="btnNew">开始新游戏</button>
+      <button class="mbtn" id="btnChapters">章节选择<small id="chapterInfo">尚未解锁章节</small></button>
+      <button class="mbtn" id="btnArchive">历史档案 · 人物 · 结局</button>
+      <button class="mbtn" id="btnSettings">游戏设置</button>
+      <button class="mbtn" id="btnCredits">制作说明 · 史实与虚构</button>
+    </div>
+    <div id="menuFoot">本游戏为历史题材互动叙事作品：历史大事件为真实背景，人物与具体情节为艺术虚构 · 内容涉及战争年代的苦难，请量力游玩</div>
+  </div>
+
+  <div id="modalRoot"></div>
+
+  <div id="endingCard" class="hidden">
+    <div class="panel">
+      <div id="endCode">结局</div>
+      <div id="endTitle"></div>
+      <div id="endBody" style="max-height:46dvh;overflow-y:auto"></div>
+      <div class="closeRow">
+        <button class="pbtn" id="btnEndGallery">结局图鉴</button>
+        <button class="pbtn main" id="btnEndMenu">回到主菜单</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="scenes.js"></script>
+<script src="story.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>
